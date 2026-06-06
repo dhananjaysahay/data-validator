@@ -7,6 +7,14 @@ data = {
     "status": ["active", "paused", "frozen", "active"],
 }
 
+rules = [
+    {"check": "missing", "column": "clicks", "label": "missing clicks"},
+    {"check": "missing", "column": "cost", "label": "missing cost"},
+    {"check": "duplicates", "label": "duplicate rows"},
+    {"check": "values", "column": "status", "allowed": {"active", "paused", "ended"}, "label": "invalid status"},
+    {"check": "bounds", "column": "clicks", "low": 0, "high": 1000, "label": "clicks out of range"},
+]
+
 df = pd.DataFrame(data)
 
 allowed = {"active", "paused", "ended"}
@@ -23,12 +31,18 @@ def check_values(df: pd.DataFrame, column: str, allowed: set) -> int:
 def check_bounds(df: pd.DataFrame, column: str, low: int, high: int) -> int:
     return int(((df[column] < low) | (df[column] > high)).sum())
 
-def run_checks(df):
+def run_checks(df, rules):
     results = []
-    results.append(("missing cost", check_missing(df, "cost")))
-    results.append(("duplicate rows", check_duplicates(df)))
-    results.append(("invalid status", check_values(df,"status",{"active", "paused", "ended"})))
-    results.append(("clicks out of range", check_bounds(df, "clicks", 0, 1000)))
+    for rule in rules:
+        if rule["check"] == "missing":
+            count = check_missing(df, rule["column"])
+        elif rule["check"] == "duplicates":
+            count = check_duplicates(df)
+        elif rule["check"] == "values":
+            count = check_values(df, rule["column"], rule["allowed"])
+        elif rule["check"] == "bounds":
+            count = check_bounds(df, rule["column"], rule["low"], rule["high"])
+        results.append((rule["label"],count))
     return results
 
 if __name__ == "__main__":
@@ -39,6 +53,6 @@ if __name__ == "__main__":
     #print(((df["clicks"] < 0) | (df["clicks"] > 1000)).sum())
     #print(check_bounds(df, "clicks", 0, 1000))
     #print(run_checks(df))
-    for label, count in run_checks(df):
+    for label, count in run_checks(df, rules):
         status = "PASS" if count == 0 else "FAIL"
         print(f"[{status}] {label}: {count}")
