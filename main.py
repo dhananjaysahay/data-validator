@@ -1,4 +1,5 @@
 import pandas as pd
+from sqlalchemy import create_engine
 
 data = {
     "campaign_id": [101, 102, 103, 101],
@@ -16,7 +17,9 @@ rules = [
 ]
 
 df = pd.DataFrame(data)
-
+engine = create_engine("sqlite:///campaigns.db")
+df.to_sql("campaigns", engine, if_exists="replace", index=False)
+db_df = pd.read_sql("SELECT * FROM campaigns", engine)
 allowed = {"active", "paused", "ended"}
 
 def check_missing(df: pd.DataFrame, column: str) -> int:
@@ -53,6 +56,6 @@ if __name__ == "__main__":
     #print(((df["clicks"] < 0) | (df["clicks"] > 1000)).sum())
     #print(check_bounds(df, "clicks", 0, 1000))
     #print(run_checks(df))
-    for label, count in run_checks(df, rules):
+    for label, count in run_checks(db_df, rules):
         status = "PASS" if count == 0 else "FAIL"
         print(f"[{status}] {label}: {count}")
