@@ -1,12 +1,7 @@
 import pandas as pd
 from sqlalchemy import create_engine
 
-data = {
-    "campaign_id": [101, 102, 103, 101],
-    "clicks": [500, 90, -5, 500],
-    "cost": [1200, None, 600, 1200],
-    "status": ["active", "paused", "frozen", "active"],
-}
+
 
 rules = [
     {"check": "missing", "column": "clicks", "label": "missing clicks"},
@@ -16,11 +11,7 @@ rules = [
     {"check": "bounds", "column": "clicks", "low": 0, "high": 1000, "label": "clicks out of range"},
 ]
 
-df = pd.DataFrame(data)
-engine = create_engine("sqlite:///campaigns.db")
-df.to_sql("campaigns", engine, if_exists="replace", index=False)
-db_df = pd.read_sql("SELECT * FROM campaigns", engine)
-allowed = {"active", "paused", "ended"}
+
 
 def check_missing(df: pd.DataFrame, column: str) -> int:
     return int(df[column].isnull().sum())
@@ -48,14 +39,23 @@ def run_checks(df, rules):
         results.append((rule["label"],count))
     return results
 
-if __name__ == "__main__":
-    #print(check_missing(df, "clicks"))
-    #print(check_duplicates(df))
-    #print((~df["status"].isin(allowed)).sum())
-    #print(check_values(df, "status", {"active", "paused", "ended"}))
-    #print(((df["clicks"] < 0) | (df["clicks"] > 1000)).sum())
-    #print(check_bounds(df, "clicks", 0, 1000))
-    #print(run_checks(df))
+def main():
+    data = {
+    "campaign_id": [101, 102, 103, 101],
+    "clicks": [500, 90, -5, 500],
+    "cost": [1200, None, 600, 1200],
+    "status": ["active", "paused", "frozen", "active"],
+    }
+    df = pd.DataFrame(data)
+    engine = create_engine("sqlite:///campaigns.db")
+    df.to_sql("campaigns", engine, if_exists="replace", index=False)
+    db_df = pd.read_sql("SELECT * FROM campaigns", engine)
+    allowed = {"active", "paused", "ended"}
     for label, count in run_checks(db_df, rules):
         status = "PASS" if count == 0 else "FAIL"
         print(f"[{status}] {label}: {count}")
+
+
+if __name__ == "__main__":
+    main()
+    
