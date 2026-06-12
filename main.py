@@ -50,7 +50,7 @@ def main():
     engine = create_engine("sqlite:///campaigns.db")
     df.to_sql("campaigns", engine, if_exists="replace", index=False)
     db_df = pd.read_sql("SELECT * FROM campaigns", engine)
-    allowed = {"active", "paused", "ended"}
+    #allowed = {"active", "paused", "ended"}
     for label, count in run_checks(db_df, rules):
         status = "PASS" if count == 0 else "FAIL"
         print(f"[{status}] {label}: {count}")

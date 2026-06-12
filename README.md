@@ -12,6 +12,21 @@ A modular Python validator that pulls operational data from a SQL database and r
 
 ## How it works
 
+## MCP server
+
+The validator is also exposed as an MCP (Model Context Protocol) server, so AI
+clients like Claude Desktop can run data-quality checks conversationally —
+"is my campaigns table healthy?" becomes a tool call against this code.
+
+Tools exposed:
+
+- `list_tables()` — list the tables in the database
+- `run_quality_checks(table)` — run all configured checks, return `(label, count)` results
+- `get_failing_rows(table, check)` — return the actual rows failing a given check
+
+To use it, point your MCP client at `mcp_server.py`, launched with this
+project's venv Python (see `claude_desktop_config.json` docs for Claude Desktop).
+
 ```
 SQL database → read into a DataFrame → run_checks() over a rules list → PASS/FAIL report
 ```
